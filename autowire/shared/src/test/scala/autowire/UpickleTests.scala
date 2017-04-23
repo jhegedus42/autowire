@@ -13,11 +13,11 @@ import acyclic.file
 
 class ApiNoRef_Impl(val fileName:String) extends Api_Interface{
 
-  object SS extends StringService{
-    override def getRefValLine4(p: RefVal[Line]): RefVal[Line] = ???
+  object SS extends Service{
+    override def getRefVal(p: RefVal[Obj]): RefVal[Obj] = ???
   }
 
-  override val strS= SS
+  override val service = SS
 }
 
 import upickle.default._
@@ -37,25 +37,37 @@ case class UUID(id: String)
 
 trait Api_Interface
 {
-  val strS:StringService
+  val service:Service
 }
-trait StringService{
-  def getRefValLine4(p:RefVal[Line]):RefVal[Line]
+trait Service{
+  def getRefVal(p:RefVal[Obj]):RefVal[Obj]
 
 }
 
-case class Line( parent : Option[Ref[Line]]= None, creator: Option[Ref[String]]=None) extends Entity[Line] // does not compile
-//case class Line( parent : Option[Ref[Line]]= None) extends Entity[Line] //does compile
 
 
-trait Entity[T <: Entity[T]]
+  case class User(name     : String, email: String )
+    extends Entity[User]
 
 
-case class Ref[T <: Entity[T]](id: String= "")
+  case class Obj(title   : Option[String]= None,
+                 _creator: Option[Ref[User]]=None) extends Entity[Obj]
 
 
-case class RefVal[T <: Entity[T]](r: Ref[T], v: T)
+    trait Entity[T <: Entity[T]]
 
+
+    case class Ref[T <: Entity[T]](s:String="") {}
+
+
+    case class RefVal[T <: Entity[T]](r: Ref[T], v: T) {
+      def map(f: T => T): RefVal[T] = copy(v = f(v))
+    }
+
+
+    object RefVal {
+      def apply[T<:Entity[T]](v: T) = new RefVal(Ref[T](), v)
+    }
 
 
 
