@@ -18,7 +18,7 @@ object Test extends TestSuite {
       // shared API interface
       trait MyApi {
         def doThing(i: Int, s: String): Seq[String]
-        val subApiString:SubApi[String]
+//        val subApiString:SubApi[String]
       }
 
       trait SubApi[T]{
@@ -27,9 +27,9 @@ object Test extends TestSuite {
 
       // server-side implementation, and router
       object MyApiImpl extends MyApi {
-        def doThing(i: Int, s: String) = Seq.fill(i)(s)
+        def doThing(integerInput: Int, stringInput: String) = Seq.fill(integerInput)(stringInput)
 
-        override val subApiString: SubApi[String] =  null
+//        override val subApiString: SubApi[String] =  null
       }
 
       object MyServer
@@ -38,9 +38,10 @@ object Test extends TestSuite {
                                   upickle.default.Writer] {
         def write[Result: Writer](r: Result) = upickle.default.write(r)
 
-//        def read[Result: Reader](p: String) = upickle.default.read[Result](p)
-        def read[Result: Reader](p: String) = ???
+        def read[Result: Reader](p: String) = upickle.default.read[Result](p)
+//        def read[Result: Reader](p: String) = ???
 
+//        case class Request[PickleType](path : Seq[String], args: Map[String, PickleType])
         val routes:PartialFunction[Core.Request[String], Future[String]] = MyServer.route[MyApi](MyApiImpl)
       }
 
