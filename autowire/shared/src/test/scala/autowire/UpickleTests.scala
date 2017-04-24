@@ -1,4 +1,5 @@
 package autowire
+
 import utest._
 import utest.framework._
 import utest.framework.ExecutionContext.RunNow
@@ -6,84 +7,62 @@ import upickle.Js
 import upickle.default._
 import acyclic.file
 
+object Test extends TestSuite {
 
+  val tests = TestSuite {
+    'example {
+      import upickle._
 
+      // shared API interface
+      trait MyApi {
+        def doThing(i: Int, s: String): Seq[String]
+        val subApiString:SubApi[String]
+      }
 
+      trait SubApi[T]{
+        def fooFighter(s:T):String
+      }
 
+      // server-side implementation, and router
+      object MyApiImpl extends MyApi {
+        def doThing(i: Int, s: String) = Seq.fill(i)(s)
 
-class ApiNoRef_Impl(val fileName:String) extends Api_Interface{
+        override val subApiString: SubApi[String] =  null
+      }
 
-  object SS extends Service{
-    override def getRefVal(p: RefVal[Obj]): RefVal[Obj] = ???
+      object MyServer
+          extends autowire.Server[String,
+                                  upickle.default.Reader,
+                                  upickle.default.Writer] {
+        def write[Result: Writer](r: Result) = upickle.default.write(r)
+
+        def read[Result: Reader](p: String) = upickle.default.read[Result](p)
+
+        val routes = MyServer.route[MyApi](MyApiImpl)
+      }
+
+      // client-side implementation, and call-site
+      object MyClient
+          extends autowire.Client[String,
+                                  upickle.default.Reader,
+                                  upickle.default.Writer] {
+        def write[Result: Writer](r: Result) = upickle.default.write(r)
+
+        def read[Result: Reader](p: String) = upickle.default.read[Result](p)
+
+        override def doCall(req: Request) = {
+          println(req)
+          MyServer.routes.apply(req)
+        }
+      }
+
+      MyClient[MyApi].doThing(3, "lol").call().foreach(println)
+    }
+
   }
-
-  override val service = SS
 }
-
-import upickle.default._
-object MyServer extends autowire.Server[String, upickle.default.Reader, upickle.default.Writer]{
-  def write[Result: Writer](r: Result) = upickle.default.write(r)
-  def read[Result: Reader](p: String) = upickle.default.read[Result](p)
-
-}
-
-object Test{
-
-  val api = new ApiNoRef_Impl("state")
-  val routes  = MyServer.route[Api_Interface](api)
-}
-case class UUID(id: String)
-
-
-trait Api_Interface
-{
-  val service:Service
-}
-trait Service{
-  def getRefVal(p:RefVal[Obj]):RefVal[Obj]
-
-}
-
-
-
-  case class User(name     : String, email: String )
-    extends Entity[User]
-
-
-  case class Obj(title   : Option[String]= None,
-                 _creator: Option[Ref[User]]=None) extends Entity[Obj]
-
-
-    trait Entity[T <: Entity[T]]
-
-
-    case class Ref[T <: Entity[T]](s:String="") {}
-
-
-    case class RefVal[T <: Entity[T]](r: Ref[T], v: T) {
-      def map(f: T => T): RefVal[T] = copy(v = f(v))
-    }
-
-
-    object RefVal {
-      def apply[T<:Entity[T]](v: T) = new RefVal(Ref[T](), v)
-    }
-
-
-
 
 object UpickleTests extends TestSuite {
-  object Bundle
-      extends GenericClientServerBundle[String,
-                                        upickle.default.Reader,
-                                        upickle.default.Writer] {
-    def write[T: upickle.default.Writer](t: T) = upickle.default.write(t)
-    def read[T: upickle.default.Reader](t: String) = upickle.default.read[T](t)
-    def routes = Server.route[Api](Controller)
-  }
-  import Bundle.{Client, Server}
-
-  import utest.PlatformShims.await
 
   val tests = TestSuite {
     'example {
@@ -103,6 +82,7 @@ object UpickleTests extends TestSuite {
                                   upickle.default.Reader,
                                   upickle.default.Writer] {
         def write[Result: Writer](r: Result) = upickle.default.write(r)
+
         def read[Result: Reader](p: String) = upickle.default.read[Result](p)
 
         val routes = MyServer.route[MyApi](MyApiImpl)
@@ -114,6 +94,7 @@ object UpickleTests extends TestSuite {
                                   upickle.default.Reader,
                                   upickle.default.Writer] {
         def write[Result: Writer](r: Result) = upickle.default.write(r)
+
         def read[Result: Reader](p: String) = upickle.default.read[Result](p)
 
         override def doCall(req: Request) = {
@@ -159,6 +140,7 @@ object UpickleTests extends TestSuite {
                                   upickle.default.Reader,
                                   upickle.default.Writer] {
         def write[Result: Writer](r: Result) = upickle.default.write(r)
+
         def read[Result: Reader](p: String) = upickle.default.read[Result](p)
 
         val routes = MyServer.route[Protocol](Controller)
@@ -169,6 +151,7 @@ object UpickleTests extends TestSuite {
                                   upickle.default.Reader,
                                   upickle.default.Writer] {
         def write[Result: Writer](r: Result) = upickle.default.write(r)
+
         def read[Result: Reader](p: String) = upickle.default.read[Result](p)
 
         override def doCall(req: Request) = {
@@ -329,12 +312,14 @@ object UpickleTests extends TestSuite {
       // to the autowire router, and that it still works
       trait MyApi {
         def doThing(i: Int, s: String): Seq[String]
+
         def doThingTwo(i: Int, s: String = "A"): Seq[String]
       }
 
       class MyOtherApiImpl(meaningOfLife: Int) extends MyApi {
         def doThing(i: Int, s: String) =
           Seq.fill(i)(s + meaningOfLife.toString)
+
         def doThingTwo(i: Int, s: String) =
           Seq.fill(i)(s + meaningOfLife.toString)
       }
@@ -344,6 +329,7 @@ object UpickleTests extends TestSuite {
                                   upickle.default.Reader,
                                   upickle.default.Writer] {
         def write[Result: Writer](r: Result) = upickle.default.write(r)
+
         def read[Result: Reader](p: String) = upickle.default.read[Result](p)
 
         val routes1 = MyServer.route[MyApi](new MyOtherApiImpl(42))
@@ -352,6 +338,7 @@ object UpickleTests extends TestSuite {
         val routes2 = MyServer.route[MyApi](anApi)
 
         def anApiDef(inp: Int) = new MyOtherApiImpl(inp)
+
         val routes3 = MyServer.route[MyApi](anApiDef(2))
       }
       class UpickleClient(
@@ -360,7 +347,9 @@ object UpickleTests extends TestSuite {
                                   upickle.default.Reader,
                                   upickle.default.Writer] {
         def write[Result: Writer](r: Result) = upickle.default.write(r)
+
         def read[Result: Reader](p: String) = upickle.default.read[Result](p)
+
         def doCall(req: Request) = pf(req)
       }
       object Client1 extends UpickleClient(MyServer.routes1)
@@ -379,5 +368,20 @@ object UpickleTests extends TestSuite {
         res4 == List("C2", "C2", "C2")
       )
     }
+  }
+
+  import Bundle.{Client, Server}
+
+  import utest.PlatformShims.await
+
+  object Bundle
+      extends GenericClientServerBundle[String,
+                                        upickle.default.Reader,
+                                        upickle.default.Writer] {
+    def write[T: upickle.default.Writer](t: T) = upickle.default.write(t)
+
+    def read[T: upickle.default.Reader](t: String) = upickle.default.read[T](t)
+
+    def routes = Server.route[Api](Controller)
   }
 }
