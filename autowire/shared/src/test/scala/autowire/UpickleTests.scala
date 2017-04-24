@@ -7,6 +7,8 @@ import upickle.Js
 import upickle.default._
 import acyclic.file
 
+import scala.concurrent.Future
+
 object Test extends TestSuite {
 
   val tests = TestSuite {
@@ -36,27 +38,28 @@ object Test extends TestSuite {
                                   upickle.default.Writer] {
         def write[Result: Writer](r: Result) = upickle.default.write(r)
 
-        def read[Result: Reader](p: String) = upickle.default.read[Result](p)
+//        def read[Result: Reader](p: String) = upickle.default.read[Result](p)
+        def read[Result: Reader](p: String) = ???
 
-        val routes = MyServer.route[MyApi](MyApiImpl)
+        val routes:PartialFunction[Core.Request[String], Future[String]] = MyServer.route[MyApi](MyApiImpl)
       }
 
-      // client-side implementation, and call-site
-      object MyClient
-          extends autowire.Client[String,
-                                  upickle.default.Reader,
-                                  upickle.default.Writer] {
-        def write[Result: Writer](r: Result) = upickle.default.write(r)
-
-        def read[Result: Reader](p: String) = upickle.default.read[Result](p)
-
-        override def doCall(req: Request) = {
-          println(req)
-          MyServer.routes.apply(req)
-        }
-      }
-
-      MyClient[MyApi].doThing(3, "lol").call().foreach(println)
+//      // client-side implementation, and call-site
+//      object MyClient
+//          extends autowire.Client[String,
+//                                  upickle.default.Reader,
+//                                  upickle.default.Writer] {
+//        def write[Result: Writer](r: Result) = upickle.default.write(r)
+//
+//        def read[Result: Reader](p: String) = upickle.default.read[Result](p)
+//
+//        override def doCall(req: Request) = {
+//          println(req)
+//          MyServer.routes.apply(req)
+//        }
+//      }
+//
+//      MyClient[MyApi].doThing(3, "lol").call().foreach(println)
     }
 
   }
