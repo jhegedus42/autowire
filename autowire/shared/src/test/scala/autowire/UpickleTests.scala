@@ -16,8 +16,8 @@ object Test extends TestSuite {
   val tests = TestSuite {
     'example {
 
-      trait MyApi[T] {
-        val subApiString: SubApi[T]
+      trait MyApi {
+        val subApiString: SubApi[String]
       }
 
       trait SubApi[T] {
@@ -26,7 +26,7 @@ object Test extends TestSuite {
       }
 
       // server-side implementation, and router
-      object MyApiImpl extends MyApi[String] {
+      object MyApiImpl extends MyApi {
 
         override val subApiString: SubApi[String] = null
       }
@@ -42,18 +42,16 @@ object Test extends TestSuite {
       trait MyWriter[T] {}
 
       // we serialize into String
-      trait MyServer[T] extends autowire.Server[String, MyReader, MyWriter] {
+      trait MyServer extends autowire.Server[String, MyReader, MyWriter] {
         def write[Result: MyWriter](r: Result): String = ???
-        // upickle.default.write(r)
 
         def read[Result: MyReader](p: String): Result = ???
 
-//        implicit val iv : MyReader[T] = ???
       }
 
-      object MyServerObj extends MyServer[String]{
+      object MyServerObj extends MyServer{
 
-        val routes: PartialFunction[Core.Request[String], Future[String]] = MyServerObj.route[MyApi[String]](MyApiImpl)
+        val routes: PartialFunction[Core.Request[String], Future[String]] = MyServerObj.route[MyApi](MyApiImpl)
       }
 
 
