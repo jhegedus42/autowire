@@ -1,34 +1,43 @@
-(<empty> match {
-  case autowire.Core.Request(Seq("autowire", "Test", "MyApi", "doThing"), (args$macro$1 @ _)) => autowire.Internal.doValidate
+match {
+  case autowire.Core.Request(Seq("autowire", "Test", "MyApi", "doThing"), (args$macro$1 @ _)) =>
+
+      autowire.Internal.doValidate(
+          {
+            <synthetic> <artifact> val x$4 =
+            autowire.Internal.read[String, String](args$macro$1, scala.util.Left(autowire.Error.Param.Missing("s")), "s", ((x$2) => MyServer.read[String](x$2)) );
+
+            {
+              <synthetic> <artifact> val x$3 =
+                   autowire.Internal.read[String, Int] (args$macro$1, scala.util.Left(autowire.Error.Param.Missing("i")), "i", ((x$1) => MyServer.read[Int](x$1)));
+              Nil.$colon$colon(x$3)
+
+            }.$colon$colon(x$4) // prepend to x$4
+            // so the end result is a list of (x$4,x$3)
+          }
+      )
 
 
-  ({
-    <synthetic> <artifact> val x$4 =
-    autowire.Internal.read[String, String](args$macro$1, scala.util.Left(autowire.Error.Param.Missing("s")), "s", ((x$2) => MyServer.read[String](x$2)) );
+      match {
+        case scala.$colon$colon((s @ (_: String @unchecked)), scala.$colon$colon((i @ (_: Int @unchecked)), Nil)) => scala.concurrent.Future(MyApiImpl.doThing(i, s)).map(((x$5) => MyServer.write(x$5)))
+        case _ => $qmark$qmark$qmark
+      }
 
 
-    {
-  <synthetic> <artifact> val x$3 = autowire.Internal.read[String, Int](args$macro$1, scala.util.Left(autowire.Error.Param.Missing("i")), "i", ((x$1) => MyServer.read[Int](x$1)));
-  Nil.$colon$colon(x$3)
-}.$colon$colon(x$4)
 
 
-  })
 
 
-  match {
-    case scala.$colon$colon((s @ (_: String @unchecked)), scala.$colon$colon((i @ (_: Int @unchecked)), Nil)) => scala.concurrent.Future(MyApiImpl.doThing(i, s)).map(((x$5) => MyServer.write(x$5)))
-    case _ => $qmark$qmark$qmark
-  }
 
-  case autowire.Core.Request(Seq("autowire", "Test", "MyApi", "doThing"), (args$macro$2 @ _)) => autowire.Internal.doValidate({
-    <synthetic> <artifact> val x$9 = autowire.Internal.read[String, String](args$macro$2, scala.util.Left(autowire.Error.Param.Missing("s")), "s", ((x$7) => MyServer.read[String](x$7)));
-    {
-  <synthetic> <artifact> val x$8 = autowire.Internal.read[String, Int](args$macro$2, scala.util.Left(autowire.Error.Param.Missing("i")), "i", ((x$6) => MyServer.read[Int](x$6)));
-  Nil.$colon$colon(x$8)
-}.$colon$colon(x$9)
-  }) match {
-    case scala.$colon$colon((s @ (_: String @unchecked)), scala.$colon$colon((i @ (_: Int @unchecked)), Nil)) => scala.concurrent.Future(MyApiImpl.doThing(i, s)).map(((x$10) => MyServer.write(x$10)))
-    case _ => $qmark$qmark$qmark
-  }
-}: autowire.Core.Router[String])
+
+
+      case autowire.Core.Request(Seq("autowire", "Test", "MyApi", "doThing"), (args$macro$2 @ _)) => autowire.Internal.doValidate({
+        <synthetic> <artifact> val x$9 = autowire.Internal.read[String, String](args$macro$2, scala.util.Left(autowire.Error.Param.Missing("s")), "s", ((x$7) => MyServer.read[String](x$7)));
+        {
+      <synthetic> <artifact> val x$8 = autowire.Internal.read[String, Int](args$macro$2, scala.util.Left(autowire.Error.Param.Missing("i")), "i", ((x$6) => MyServer.read[Int](x$6)));
+      Nil.$colon$colon(x$8)
+    }.$colon$colon(x$9)
+      }) match {
+        case scala.$colon$colon((s @ (_: String @unchecked)), scala.$colon$colon((i @ (_: Int @unchecked)), Nil)) => scala.concurrent.Future(MyApiImpl.doThing(i, s)).map(((x$10) => MyServer.write(x$10)))
+        case _ => $qmark$qmark$qmark
+      }
+}: autowire.Core.Router[String]
